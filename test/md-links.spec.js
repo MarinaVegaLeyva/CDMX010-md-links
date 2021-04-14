@@ -1,20 +1,19 @@
-const { validateLink } = require('../helpers/logicLinks.js');
-//const {saludo}= require( '../helpers/saludo.js')
-
-//const print = (message) =>`Estoy recibiendo ${message}`;
-
-/* describe('mdLinks', () => {
-
-  it('should...', () => {
-    expect(saludo('Marina')).toBe('Hola Marina');
-  });
-
-}); */
+const { validateLink, resultValidaLinks, validateDirectory } = require('../helpers/logicLinks.js');
 
 const result = {
   href: 'https://es.wikipedia.org/wiki/Markdown',
   status: 'OK'
 }
+
+const promises =  [
+  { 
+    href: 'https://es.wikipedia.org/wiki/Markdown',
+    status: 'OK'
+   }
+];
+
+
+const logValidaLinks = 'https://es.wikipedia.org/wiki/Markdown   OK';
 
 describe('validateLink', () =>{
   it('validateLink deberia ser una funcion', () =>{
@@ -28,3 +27,29 @@ describe('validateLink', () =>{
     })
   });
 });
+
+describe('resultValidaLinks',()=>{
+  it('resultValidaLinks deberia ser una funcion',() => {
+    expect(typeof resultValidaLinks).toBe('function');
+  });
+
+/*   it('Deberia mostrar los link con su status',(done) => {
+    console.log(promises);
+    resultValidaLinks(promises)
+    .then(() =>{
+      expect(logValidaLinks).toEqual(logValidaLinks);
+      done();
+    })
+  }); */
+});
+
+describe('validateDirectory',() => {
+  it('resultValidaLinks deberia ser una funcion',() =>{
+    expect(typeof validateDirectory).toBe('function');
+  });
+
+  it('deberia devolver un boolean',() =>{
+    expect(validateDirectory('README.md')).toBe(false);
+  });
+
+})
