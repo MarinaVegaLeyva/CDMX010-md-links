@@ -1,12 +1,64 @@
 const fetch = require("node-fetch");
 var colors = require("colors");
+const fs = require('fs');
+const path = require('path');
+const { options } = require('../cli/cli');
+
+const optionsArgv = options();
+
+const mdLinks = (route, options) =>{
+  const data =  fs.readFileSync(route,'utf8');
+  const links = extractLinks(data);
+  let promises = null;
+  if(links!==null){
+    promises = links.map((link) => validateLink(link)); // esto produce un arreglo de promesas
+  }
+  
+  if(options.validate!==false && promises!==null ){
+      resultValidaLinks(promises);
+  }
+  if(options.stats!==false && promises!==null ){
+      stats(promises);
+  }
+};
+
+const validatePath = (route) => {
+  if(validateDirectory(route)){
+    readDirectory(route)
+  }else{
+    const extNamePath = path.extname(route);
+    if(extNamePath ==='.md'){
+        mdLinks(route,optionsArgv)        
+    }
+  }
+}
+
+const validateDirectory = (route) => {
+  const directory = fs.lstatSync(route).isDirectory();
+  return directory;
+}
+
+const readDirectory = (directory) => {
+  fs.readdir(directory, (err,files) =>{
+    if(err) {
+      return console.log("error al procesar el archivo");
+    }else{
+      files.forEach((doc) => {
+        const newPath = path.normalize(directory + '/' + doc);
+        validatePath(newPath);
+      });
+    }
+  });
+}
 
 const extractLinks = (data) => {
   const expression = /(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|www\.[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\.[^\s]{2,}|https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9]+\.[^\s]{2,}|www\.[a-zA-Z0-9]+\.[^\s]{2,})/gi;
   const regex = new RegExp(expression);
   const links = data.match(regex);
-  for (let x = 0; x < links.length; x++) {
-    links[x] = links[x].replace(/[(),"]+/g, "");
+  if(links!=null){
+    for (let x = 0; x < links.length; x++) {
+      links[x] = links[x].replace(/[(),"]+/g, "");
+    }
   }
   return links;
 };
@@ -26,6 +78,7 @@ const resultValidaLinks = (promises) => {
   Promise.all(promises) // el promise.all recibe como argumento un arreglo de promesas
     //.then(result => console.log(result)); // el resultado de cada promesas [{ state: 'OK'}, { state: 'OK'}, { state: 'OK'}, ...]
     .then((result) => {
+      //console.log(promises);
       result.map((res) => {
         if (res.status === "OK") {
           console.log(
@@ -68,4 +121,7 @@ module.exports = {
   validateLink,
   resultValidaLinks,
   stats,
+  readDirectory,
+  validateDirectory,
+  validatePath
 };
